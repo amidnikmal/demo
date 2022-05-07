@@ -20,7 +20,7 @@ export default {
     return {
       symbol: BinanceSymbolsResponse.data.find(s => s.base === 'BNB'),
       symbols: BinanceSymbolsResponse.data,
-   }
+    }
   },
 
   mounted() {

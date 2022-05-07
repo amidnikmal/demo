@@ -1,10 +1,8 @@
 <template>
   <div class="order-book">
     <LoadingComp v-if="loading"/>
-
-    <PricesTable v-bind="{ prices: asks, type: 'asks' }"/>
-
-    <PricesTable v-bind="{ prices: bids, type: 'bids' }"/>
+    <PricesTable v-bind="{ prices: asks, type: 'asks' , symbol}"/>
+    <PricesTable v-bind="{ prices: bids, type: 'bids' , symbol}"/>
   </div>
 </template>
 
@@ -46,9 +44,24 @@ export default {
   },
 
   watch: {
-    "$store.state.event": function() {      
-      this.symbol = this.$store.state.event
-    }
+    "$store.state.event": function() {
+      this.bids = {}
+      this.asks = {}
+
+      const storeSymbol = this.$store.state.event.event.symbol.symbol
+
+      if (storeSymbol && storeSymbol != this.symbol.symbol) {
+        this.symbol = this.$store.state.event.event.symbol
+
+        this.loading = true
+        Binance.changeSymbol(this.symbol.symbol).then(result => {
+          this.prepareTable(result)
+          this.loading = false;
+        })
+      }
+    },
+
+   
   },
 
   methods: {
@@ -65,9 +78,6 @@ export default {
     },
 
     updateState(event) {
-
-      console.log('udpate state')
-
       if (!this.bids || !this.asks) {
         return
       }
@@ -84,6 +94,7 @@ export default {
     },
 
     prepareTable(data) {
+
       const { asks, bids } = data
       this.arrayToObject(asks, 'asks')
       this.arrayToObject(bids, 'bids')
@@ -94,17 +105,21 @@ export default {
 </script>
 
 
-<style scoped>
+
+<style>
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
 
 .order-book {
   display: flex;
-  /* flex: 1; */
-  min-height: 100%;
-  max-height: 100%;
+  height: 500px;
   overflow: hidden;
 }
 
 .order-book .prices-container {
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 </style>
